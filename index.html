@@ -21,6 +21,7 @@
     --radius: 14px;
     --radius-sm: 8px;
     --danger: #c0392b;
+    --preview-color: #2a6db5;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -36,6 +37,7 @@
       --border: rgba(255,255,255,0.08);
       --border-md: rgba(255,255,255,0.14);
       --danger: #e55a4e;
+      --preview-color: #6aabf0;
     }
   }
 
@@ -72,65 +74,57 @@
 
   .options {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    flex-wrap: wrap;
+    gap: 7px;
     margin-bottom: 14px;
   }
 
   .opt-label {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 11px 14px;
+    gap: 6px;
+    padding: 7px 13px;
     background: var(--surface);
     border: 0.5px solid var(--border-md);
-    border-radius: var(--radius-sm);
+    border-radius: 99px;
     cursor: pointer;
-    transition: background 0.12s;
+    transition: background 0.12s, border-color 0.15s;
     user-select: none;
   }
 
-  .opt-label:hover { background: var(--surface2); }
-
-  .opt-label input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 20px; height: 20px;
-    border: 1.5px solid var(--border-md);
-    border-radius: 5px;
-    background: var(--surface2);
-    cursor: pointer;
-    flex-shrink: 0;
-    position: relative;
-    transition: background 0.15s, border-color 0.15s;
-  }
-
-  .opt-label input[type="checkbox"]:checked {
+  .opt-label:has(input:checked) {
     background: var(--accent);
     border-color: var(--accent);
   }
 
-  .opt-label input[type="checkbox"]:checked::after {
-    content: '';
-    position: absolute;
-    left: 5px; top: 2px;
-    width: 6px; height: 10px;
-    border: 2px solid var(--accent-fg);
-    border-top: none; border-left: none;
-    transform: rotate(45deg);
+  .opt-label input[type="checkbox"] {
+    display: none;
+  }
+
+  .opt-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--border-md);
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .opt-label:has(input:checked) .opt-dot {
+    background: var(--accent-fg);
   }
 
   .opt-text {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text);
     font-weight: 500;
+    transition: color 0.15s;
   }
 
-  .opt-desc {
-    font-size: 12px;
-    color: var(--text-hint);
-    margin-left: auto;
+  .opt-label:has(input:checked) .opt-text {
+    color: var(--accent-fg);
   }
+
+  .opt-desc { display: none; }
 
   .section {
     background: var(--surface);
@@ -147,6 +141,45 @@
     text-transform: uppercase;
     color: var(--text-hint);
     margin-bottom: 10px;
+  }
+
+  .input-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .input-header .section-label {
+    margin-bottom: 0;
+  }
+
+  .btn-clear {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .btn-clear:hover {
+    background: var(--surface2);
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  .btn-clear svg {
+    width: 13px; height: 13px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
   }
 
   textarea {
@@ -169,15 +202,30 @@
     border-color: var(--border-md);
   }
 
+  .counter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+
   .counter {
     font-size: 12px;
     color: var(--text-hint);
-    text-align: right;
-    margin-top: 6px;
     transition: color 0.2s;
   }
 
   .counter.warn { color: var(--danger); }
+
+  .preview-count {
+    font-size: 12px;
+    color: var(--preview-color);
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .preview-count.visible { opacity: 1; }
 
   .btn-transform {
     width: 100%;
@@ -300,25 +348,34 @@
   <div class="options">
     <label class="opt-label">
       <input type="checkbox" id="opt-hyphen" checked>
+      <span class="opt-dot"></span>
       <span class="opt-text">하이픈 제거</span>
-      <span class="opt-desc">- 삭제</span>
     </label>
     <label class="opt-label">
       <input type="checkbox" id="opt-period" checked>
+      <span class="opt-dot"></span>
       <span class="opt-text">마침표 → 줄바꿈</span>
-      <span class="opt-desc">. 을 줄바꿈으로</span>
     </label>
     <label class="opt-label">
       <input type="checkbox" id="opt-space" checked>
+      <span class="opt-dot"></span>
       <span class="opt-text">공백 제거</span>
-      <span class="opt-desc">스페이스·탭 삭제</span>
     </label>
   </div>
 
   <div class="section">
-    <div class="section-label">입력</div>
+    <div class="input-header">
+      <div class="section-label">입력</div>
+      <button class="btn-clear" onclick="clearInput()" aria-label="입력 초기화">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        비우기
+      </button>
+    </div>
     <textarea id="input" rows="10" maxlength="20000" placeholder="여기에 텍스트를 입력하세요 (최대 2만자)"></textarea>
-    <div class="counter" id="counter">0 / 20,000</div>
+    <div class="counter-row">
+      <div class="counter" id="counter">0 / 20,000</div>
+      <div class="preview-count" id="preview-count"></div>
+    </div>
   </div>
 
   <button class="btn-transform" onclick="transform()">
@@ -347,33 +404,125 @@
 <script>
   const inputEl = document.getElementById('input');
   const counterEl = document.getElementById('counter');
+  const previewCountEl = document.getElementById('preview-count');
   const resultSection = document.getElementById('result-section');
   const resultBox = document.getElementById('result');
   const resultCount = document.getElementById('result-count');
   const toast = document.getElementById('toast');
   let resultText = '';
 
-  inputEl.addEventListener('input', () => {
-    const len = inputEl.value.length;
+  // 옵션 체크박스들
+  const optHyphen = document.getElementById('opt-hyphen');
+  const optPeriod = document.getElementById('opt-period');
+  const optSpace = document.getElementById('opt-space');
+
+  // 변환 로직 (미리보기용으로도 사용)
+  function applyTransform(raw) {
+    let result = raw;
+
+    // 하이픈 제거
+    if (optHyphen.checked) {
+      result = result.replace(/-/g, '');
+    }
+
+    // 마침표 → 줄바꿈 (단, 큰따옴표 또는 작은따옴표 안의 마침표는 유지)
+    if (optPeriod.checked) {
+      result = replacePeriodsOutsideQuotes(result);
+    }
+
+    // 공백 제거 (단, [ ] 안의 공백은 유지)
+    if (optSpace.checked) {
+      result = removeSpacesOutsideBrackets(result);
+    }
+
+    return result;
+  }
+
+  // 따옴표 밖의 마침표만 줄바꿈으로 교체
+  function replacePeriodsOutsideQuotes(text) {
+    let result = '';
+    let inSingle = false;
+    let inDouble = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (ch === "'" && !inDouble) {
+        inSingle = !inSingle;
+        result += ch;
+      } else if (ch === '"' && !inSingle) {
+        inDouble = !inDouble;
+        result += ch;
+      } else if (ch === '.' && !inSingle && !inDouble) {
+        result += '\n';
+      } else {
+        result += ch;
+      }
+    }
+    return result;
+  }
+
+  // 대괄호 밖의 공백만 제거
+  function removeSpacesOutsideBrackets(text) {
+    let result = '';
+    let depth = 0;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (ch === '[') {
+        depth++;
+        result += ch;
+      } else if (ch === ']') {
+        if (depth > 0) depth--;
+        result += ch;
+      } else if (/[ \t\r\f\v\u00a0\u3000]/.test(ch)) {
+        if (depth > 0) result += ch; // 대괄호 안 → 유지
+        // 대괄호 밖 → 제거
+      } else {
+        result += ch;
+      }
+    }
+    return result;
+  }
+
+  // 글자수 미리보기 업데이트
+  function updatePreview() {
+    const raw = inputEl.value;
+    const len = raw.length;
     counterEl.textContent = len.toLocaleString() + ' / 20,000';
     counterEl.className = 'counter' + (len > 18000 ? ' warn' : '');
-  });
+
+    if (raw.trim() && (optHyphen.checked || optPeriod.checked || optSpace.checked)) {
+      const preview = applyTransform(raw);
+      const diff = preview.length - len;
+      const sign = diff > 0 ? '+' : '';
+      previewCountEl.textContent = '→ ' + preview.length.toLocaleString() + '자 (' + sign + diff + ')';
+      previewCountEl.classList.add('visible');
+    } else {
+      previewCountEl.classList.remove('visible');
+    }
+  }
+
+  inputEl.addEventListener('input', updatePreview);
+  optHyphen.addEventListener('change', updatePreview);
+  optPeriod.addEventListener('change', updatePreview);
+  optSpace.addEventListener('change', updatePreview);
 
   function transform() {
     const raw = inputEl.value;
     if (!raw.trim()) return;
 
-    let result = raw;
-    if (document.getElementById('opt-hyphen').checked) result = result.replace(/-/g, '');
-    if (document.getElementById('opt-period').checked) result = result.replace(/\./g, '\n');
-    if (document.getElementById('opt-space').checked) result = result.replace(/[ \t\r\f\v\u00a0\u3000]/g, '');
-
-    resultText = result;
+    resultText = applyTransform(raw);
 
     resultBox.textContent = resultText;
     resultCount.textContent = '결과 길이: ' + resultText.length.toLocaleString() + '자';
     resultSection.style.display = 'block';
     resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function clearInput() {
+    inputEl.value = '';
+    updatePreview();
+    resultSection.style.display = 'none';
+    resultText = '';
+    inputEl.focus();
   }
 
   function copyResult() {
