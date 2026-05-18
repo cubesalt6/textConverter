@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>텍스트 변환기</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #eeede9;
+    --text: #1a1a18;
+    --text-muted: #7a7a75;
+    --text-hint: #b0afa9;
+    --accent: #1a1a18;
+    --accent-fg: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --border-md: rgba(0,0,0,0.18);
+    --radius: 14px;
+    --radius-sm: 8px;
+    --danger: #c0392b;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121210;
+      --surface: #1e1e1b;
+      --surface2: #2a2a27;
+      --text: #f0efe9;
+      --text-muted: #888880;
+      --text-hint: #555550;
+      --accent: #f0efe9;
+      --accent-fg: #1a1a18;
+      --border: rgba(255,255,255,0.08);
+      --border-md: rgba(255,255,255,0.14);
+      --danger: #e55a4e;
+    }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 28px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 14px;
+  }
+
+  .opt-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    background: var(--surface);
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.12s;
+    user-select: none;
+  }
+
+  .opt-label:hover { background: var(--surface2); }
+
+  .opt-label input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border: 1.5px solid var(--border-md);
+    border-radius: 5px;
+    background: var(--surface2);
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .opt-label input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .opt-label input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px; top: 2px;
+    width: 6px; height: 10px;
+    border: 2px solid var(--accent-fg);
+    border-top: none; border-left: none;
+    transform: rotate(45deg);
+  }
+
+  .opt-text {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .opt-desc {
+    font-size: 12px;
+    color: var(--text-hint);
+    margin-left: auto;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-hint);
+    margin-bottom: 10px;
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.65;
+    padding: 12px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.15s;
+    display: block;
+  }
+
+  textarea:focus {
+    border-color: var(--border-md);
+  }
+
+  .counter {
+    font-size: 12px;
+    color: var(--text-hint);
+    text-align: right;
+    margin-top: 6px;
+    transition: color 0.2s;
+  }
+
+  .counter.warn { color: var(--danger); }
+
+  .btn-transform {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    margin-bottom: 14px;
+  }
+
+  .btn-transform:hover { opacity: 0.85; }
+  .btn-transform:active { transform: scale(0.98); opacity: 0.8; }
+
+  .btn-transform svg {
+    width: 18px; height: 18px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  #result-section {
+    display: none;
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .btn-copy {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: transparent;
+    color: var(--text);
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s, transform 0.08s;
+  }
+
+  .btn-copy:hover { background: var(--surface2); }
+  .btn-copy:active { transform: scale(0.97); }
+
+  .btn-copy svg {
+    width: 15px; height: 15px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  .result-box {
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  .result-count {
+    font-size: 12px;
+    color: var(--text-hint);
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: var(--text);
+    color: var(--accent-fg);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 20px;
+    border-radius: 99px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    white-space: nowrap;
+    z-index: 999;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>텍스트 변환기</h1>
+    <p class="subtitle">적용할 변환을 선택하고 버튼을 누르세요</p>
+  </header>
+
+  <div class="options">
+    <label class="opt-label">
+      <input type="checkbox" id="opt-hyphen" checked>
+      <span class="opt-text">하이픈 제거</span>
+      <span class="opt-desc">- 삭제</span>
+    </label>
+    <label class="opt-label">
+      <input type="checkbox" id="opt-period" checked>
+      <span class="opt-text">마침표 → 줄바꿈</span>
+      <span class="opt-desc">. 을 줄바꿈으로</span>
+    </label>
+    <label class="opt-label">
+      <input type="checkbox" id="opt-space" checked>
+      <span class="opt-text">공백 제거</span>
+      <span class="opt-desc">스페이스·탭 삭제</span>
+    </label>
+  </div>
+
+  <div class="section">
+    <div class="section-label">입력</div>
+    <textarea id="input" rows="10" maxlength="20000" placeholder="여기에 텍스트를 입력하세요 (최대 2만자)"></textarea>
+    <div class="counter" id="counter">0 / 20,000</div>
+  </div>
+
+  <button class="btn-transform" onclick="transform()">
+    <svg viewBox="0 0 24 24"><path d="M12 3v18M3 12l9-9 9 9"/></svg>
+    변환하기
+  </button>
+
+  <div id="result-section">
+    <div class="section">
+      <div class="result-header">
+        <div class="section-label" style="margin-bottom:0;">결과</div>
+        <button class="btn-copy" id="copy-btn" onclick="copyResult()" aria-label="결과 복사">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          복사
+        </button>
+      </div>
+      <div class="result-box" id="result"></div>
+      <div class="result-count" id="result-count"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">클립보드에 복사됐어요 ✓</div>
+
+<script>
+  const inputEl = document.getElementById('input');
+  const counterEl = document.getElementById('counter');
+  const resultSection = document.getElementById('result-section');
+  const resultBox = document.getElementById('result');
+  const resultCount = document.getElementById('result-count');
+  const toast = document.getElementById('toast');
+  let resultText = '';
+
+  inputEl.addEventListener('input', () => {
+    const len = inputEl.value.length;
+    counterEl.textContent = len.toLocaleString() + ' / 20,000';
+    counterEl.className = 'counter' + (len > 18000 ? ' warn' : '');
+  });
+
+  function transform() {
+    const raw = inputEl.value;
+    if (!raw.trim()) return;
+
+    let result = raw;
+    if (document.getElementById('opt-hyphen').checked) result = result.replace(/-/g, '');
+    if (document.getElementById('opt-period').checked) result = result.replace(/\./g, '\n');
+    if (document.getElementById('opt-space').checked) result = result.replace(/[ \t\r\f\v\u00a0\u3000]/g, '');
+
+    resultText = result;
+
+    resultBox.textContent = resultText;
+    resultCount.textContent = '결과 길이: ' + resultText.length.toLocaleString() + '자';
+    resultSection.style.display = 'block';
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function copyResult() {
+    if (!resultText) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(resultText).then(showToast);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = resultText;
+      ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast();
+    }
+  }
+
+  let toastTimer;
+  function showToast() {
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+</script>
+</body>
+</html>
